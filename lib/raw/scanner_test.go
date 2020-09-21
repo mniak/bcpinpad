@@ -78,6 +78,17 @@ func TestScanWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 	}
 }
 
+func TestScanWithoutData(t *testing.T) {
+
+	alice, _ := EntangledReadWriters()
+
+	scanner := bufio.NewScanner(alice)
+	scanner.Split(PayloadScanner)
+
+	assert.False(t, scanner.Scan(), "scan should fail")
+	assert.NoError(t, scanner.Err(), "scan should not raise error")
+}
+
 func TestScanWithWrongCRC(t *testing.T) {
 
 	alice, bob := EntangledReadWriters()
