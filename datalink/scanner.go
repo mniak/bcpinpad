@@ -16,14 +16,14 @@ var (
 	ErrMessageTooLong  = errors.New("the message payload is too long. it should be at most 1024 in length")
 )
 
-func PayloadSplit(data []byte, atEOF bool) (int, []byte, error) {
+func PayloadSplitter(data []byte, atEOF bool) (int, []byte, error) {
 	if atEOF && len(data) == 0 {
 		// Request more data.
 		return 0, nil, nil
 	}
 
 	if data[0] == ppabecs.CAN {
-		advance, token, err := PayloadSplit(data[1:], atEOF)
+		advance, token, err := PayloadSplitter(data[1:], atEOF)
 		return advance + 1, token, err
 	}
 

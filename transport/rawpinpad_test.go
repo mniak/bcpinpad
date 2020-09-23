@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mniak/ppabecs"
+	"github.com/mniak/ppabecs/datalink/private/entangled"
 	"github.com/mniak/ppabecs/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +22,7 @@ func TestSend_WhenReceiveACK_ShouldStopSending(t *testing.T) {
 		AddByte(ppabecs.ETB, byte(0x77), byte(0x5e)).
 		Bytes()
 
-	alice, bob := utils.EntangledReadWriters()
+	alice, bob := entangled.EntangledReadWriters()
 	pp := NewPinpad(alice)
 
 	startTime := time.Now()
