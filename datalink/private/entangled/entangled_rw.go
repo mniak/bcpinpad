@@ -1,17 +1,42 @@
 package entangled
 
 import (
-	"bufio"
+	"bytes"
 	"io"
 	"time"
 )
 
-func EntangledReadWriters() (ReadWriter, ReadWriter) {
-	ar, aw := io.Pipe()
-	br, bw := io.Pipe()
+const ReadTimeout = 2 * time.Second
 
-	alice := NewReadWriter(ar, bw)
-	bob := NewReadWriter(br, aw)
+type CustomPipe struct {
+	buffer *bytes.Buffer
+}
+
+func NewPipe() CustomPipe {
+	return CustomPipe{
+		buffer: bytes.NewBuffer(make([]byte, 0)),
+	}
+}
+func (p CustomPipe) Write(bytes []byte) (int, error) {
+	return p.buffer.Write(bytes)
+}
+func (p CustomPipe) Read(bytes []byte) (int, error) {
+	n := 0
+	n, err := p.buffer.Read(bytes)
+	start := time.Now()
+	for err == io.EOF && n < len(bytes) && ReadTimeout > time.Since(start) {
+		time.Sleep(400 * time.Millisecond)
+		n, err = p.buffer.Read(bytes[n:])
+	}
+	return n, err
+}
+
+func EntangledReadWriters() (ReadWriter, ReadWriter) {
+	b1 := NewPipe()
+	b2 := NewPipe()
+
+	alice := NewReadWriter(b1, b2)
+	bob := NewReadWriter(b2, b1)
 	return alice, bob
 }
 
@@ -23,18 +48,13 @@ func countTime(fn func()) time.Duration {
 }
 
 type ReadWriter struct {
-	*bufio.ReadWriter
+	io.Reader
+	io.Writer
 }
 
 func NewReadWriter(r io.Reader, w io.Writer) ReadWriter {
 	return ReadWriter{
-		bufio.NewReadWriter(
-			bufio.NewReader(r),
-			bufio.NewWriter(w),
-		),
+		r,
+		w,
 	}
-}
-
-func (rw ReadWriter) Read(p []byte) (int, error) {
-	return 0, nil
 }

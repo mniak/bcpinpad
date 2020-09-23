@@ -37,7 +37,9 @@ func TestScanWellFormattedMessage(t *testing.T) {
 				AddByte(d.crc1, d.crc2).
 				Bytes()
 
-			go bob.Write(bytes)
+			go func() {
+				bob.Write(bytes)
+			}()
 			assert.True(t, scanner.Scan(), "scan failed")
 			assert.NoError(t, scanner.Err(), "scan raised error")
 			text := scanner.Text()
@@ -81,9 +83,6 @@ func TestScanWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 }
 
 func TestScanWithoutData(t *testing.T) {
-	// timeout := 2 * time.Second
-	// tolerance := 50 * time.Millisecond
-
 	alice, _ := entangled.EntangledReadWriters()
 
 	scanner := bufio.NewScanner(alice)
