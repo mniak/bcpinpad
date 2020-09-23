@@ -1,4 +1,4 @@
-package raw
+package datalink
 
 import (
 	"bufio"
@@ -6,7 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mniak/ppabecs/lib/utils"
+	"github.com/mniak/ppabecs"
+	"github.com/mniak/ppabecs/utils"
 	"github.com/stellar/go/crc16"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,12 +27,12 @@ func TestScanWellFormattedMessage(t *testing.T) {
 			alice, bob := utils.EntangledReadWriters()
 
 			scanner := bufio.NewScanner(alice)
-			scanner.Split(PayloadScanner)
+			scanner.Split(PayloadSplit)
 
 			bytes := utils.NewBytesBuilder().
-				AddByte(SYN).
+				AddByte(ppabecs.SYN).
 				AddString(d.text).
-				AddByte(ETB).
+				AddByte(ppabecs.ETB).
 				AddByte(d.crc1, d.crc2).
 				Bytes()
 
@@ -59,13 +60,13 @@ func TestScanWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 			alice, bob := utils.EntangledReadWriters()
 
 			scanner := bufio.NewScanner(alice)
-			scanner.Split(PayloadScanner)
+			scanner.Split(PayloadSplit)
 
 			bytes := utils.NewBytesBuilder().
-				AddByte(CAN).
-				AddByte(SYN).
+				AddByte(ppabecs.CAN).
+				AddByte(ppabecs.SYN).
 				AddString(d.text).
-				AddByte(ETB).
+				AddByte(ppabecs.ETB).
 				AddByte(d.crc1, d.crc2).
 				Bytes()
 
@@ -96,12 +97,12 @@ func TestScanWithWrongCRC(t *testing.T) {
 	alice, bob := utils.EntangledReadWriters()
 
 	scanner := bufio.NewScanner(alice)
-	scanner.Split(PayloadScanner)
+	scanner.Split(PayloadSplit)
 
 	bytes := utils.NewBytesBuilder().
-		AddByte(SYN).
+		AddByte(ppabecs.SYN).
 		AddString("ABCDEFG").
-		AddByte(ETB).
+		AddByte(ppabecs.ETB).
 		AddByte(0x11, 0x22).
 		Bytes()
 
@@ -121,14 +122,14 @@ func TestScanWithByteOutOfRange(t *testing.T) {
 			alice, bob := utils.EntangledReadWriters()
 
 			scanner := bufio.NewScanner(alice)
-			scanner.Split(PayloadScanner)
+			scanner.Split(PayloadSplit)
 
 			bytes := utils.NewBytesBuilder().
-				AddByte(SYN).
+				AddByte(ppabecs.SYN).
 				AddString("ABCD").
 				AddByte(b).
 				AddString("EFGH").
-				AddByte(ETB).
+				AddByte(ppabecs.ETB).
 				AddByte(0x11, 0x22).
 				Bytes()
 
@@ -145,11 +146,11 @@ func TestScanWithPayloadLength0(t *testing.T) {
 	alice, bob := utils.EntangledReadWriters()
 
 	scanner := bufio.NewScanner(alice)
-	scanner.Split(PayloadScanner)
+	scanner.Split(PayloadSplit)
 
 	bytes := utils.NewBytesBuilder().
-		AddByte(SYN).
-		AddByte(ETB).
+		AddByte(ppabecs.SYN).
+		AddByte(ppabecs.ETB).
 		AddByte(0x11, 0x22).
 		Bytes()
 
@@ -164,12 +165,12 @@ func TestScanWithPayloadLengthGreaterThan1024(t *testing.T) {
 	alice, bob := utils.EntangledReadWriters()
 
 	scanner := bufio.NewScanner(alice)
-	scanner.Split(PayloadScanner)
+	scanner.Split(PayloadSplit)
 
 	bytes := utils.NewBytesBuilder().
-		AddByte(SYN).
+		AddByte(ppabecs.SYN).
 		AddString(strings.Repeat("a", 1024+1)).
-		AddByte(ETB).
+		AddByte(ppabecs.ETB).
 		AddByte(0x11, 0x22).
 		Bytes()
 

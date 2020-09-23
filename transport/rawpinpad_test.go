@@ -1,11 +1,12 @@
-package raw
+package transport
 
 import (
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/mniak/ppabecs/lib/utils"
+	"github.com/mniak/ppabecs"
+	"github.com/mniak/ppabecs/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,9 +16,9 @@ const ToleranceDuration = 50 * time.Millisecond
 func TestSend_WhenReceiveACK_ShouldStopSending(t *testing.T) {
 	payload := []byte("OPN000")
 	expectedBytes := utils.NewBytesBuilder().
-		AddByte(SYN).
+		AddByte(ppabecs.SYN).
 		AddBytes(payload).
-		AddByte(ETB, byte(0x77), byte(0x5e)).
+		AddByte(ppabecs.ETB, byte(0x77), byte(0x5e)).
 		Bytes()
 
 	alice, bob := utils.EntangledReadWriters()
@@ -33,7 +34,7 @@ func TestSend_WhenReceiveACK_ShouldStopSending(t *testing.T) {
 		wg.Done()
 	}()
 	go func() {
-		bob.Write([]byte{ACK})
+		bob.Write([]byte{ppabecs.ACK})
 	}()
 	time.Sleep(100 * time.Millisecond)
 	wg.Wait()

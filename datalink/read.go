@@ -1,4 +1,4 @@
-package raw
+package datalink
 
 import (
 	"bufio"
@@ -8,7 +8,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/mniak/ppabecs/lib/utils"
+	"github.com/mniak/ppabecs"
+	"github.com/mniak/ppabecs/utils"
 )
 
 type Response interface{}
@@ -61,7 +62,7 @@ func ReadSYN(r bufio.Reader) error {
 	b, err := ReadByte(r)
 	if err != nil {
 		return err
-	} else if b != SYN {
+	} else if b != ppabecs.SYN {
 		return fmt.Errorf("protocol violation. expecting SYN (0x16) but received %x", b)
 	}
 	return nil

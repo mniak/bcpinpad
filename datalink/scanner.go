@@ -1,4 +1,4 @@
-package raw
+package datalink
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/mniak/ppabecs"
 	"github.com/stellar/go/crc16"
 )
 
@@ -15,33 +16,21 @@ var (
 	ErrMessageTooLong  = errors.New("the message payload is too long. it should be at most 1024 in length")
 )
 
-// func AbortScanner(data []byte, atEOF bool) (int, []byte, error) {
-// 	if atEOF && len(data) == 0 {
-// 		// Request more data.
-// 		return 0, nil, nil
-// 	}
-
-// 	if data[0] == CAN {
-// 		advance, token, err := PayloadScanner(data[1:], atEOF)
-// 		return advance + 1, token, err
-// 	}
-// }
-
-func PayloadScanner(data []byte, atEOF bool) (int, []byte, error) {
+func PayloadSplit(data []byte, atEOF bool) (int, []byte, error) {
 	if atEOF && len(data) == 0 {
 		// Request more data.
 		return 0, nil, nil
 	}
 
-	if data[0] == CAN {
-		advance, token, err := PayloadScanner(data[1:], atEOF)
+	if data[0] == ppabecs.CAN {
+		advance, token, err := PayloadSplit(data[1:], atEOF)
 		return advance + 1, token, err
 	}
 
-	if data[0] != SYN {
+	if data[0] != ppabecs.SYN {
 		return 0, nil, fmt.Errorf("protocol violation. expecting SYN (0x16) but received %x", data[0])
 	}
-	if i := bytes.IndexByte(data, ETB); i >= 0 {
+	if i := bytes.IndexByte(data, ppabecs.ETB); i >= 0 {
 		if i < 2 {
 			return 0, nil, ErrMessageTooShort
 		}
