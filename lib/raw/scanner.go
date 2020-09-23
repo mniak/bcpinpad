@@ -15,6 +15,18 @@ var (
 	ErrMessageTooLong  = errors.New("the message payload is too long. it should be at most 1024 in length")
 )
 
+// func AbortScanner(data []byte, atEOF bool) (int, []byte, error) {
+// 	if atEOF && len(data) == 0 {
+// 		// Request more data.
+// 		return 0, nil, nil
+// 	}
+
+// 	if data[0] == CAN {
+// 		advance, token, err := PayloadScanner(data[1:], atEOF)
+// 		return advance + 1, token, err
+// 	}
+// }
+
 func PayloadScanner(data []byte, atEOF bool) (int, []byte, error) {
 	if atEOF && len(data) == 0 {
 		// Request more data.
