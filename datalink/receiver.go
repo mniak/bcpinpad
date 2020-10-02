@@ -9,7 +9,7 @@ type receiver struct {
 	scanner *bufio.Scanner
 }
 
-func newSimpleReceiver(r io.Reader) receiver {
+func NewReceiver(r io.Reader) receiver {
 	return receiver{
 		scanner: NewScanner(r),
 	}
