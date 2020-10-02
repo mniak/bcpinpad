@@ -8,19 +8,19 @@ import (
 	"github.com/stellar/go/crc16"
 )
 
-type rawPinpad struct {
+type pinpad struct {
 	rw       io.ReadWriter
 	receiver Receiver
 }
 
-func NewPinpad(rw io.ReadWriter, receiver Receiver) *rawPinpad {
-	return &rawPinpad{
+func NewPinpad(rw io.ReadWriter, receiver Receiver) *pinpad {
+	return &pinpad{
 		rw:       rw,
 		receiver: receiver,
 	}
 }
 
-func (pp *rawPinpad) SendData(payload []byte) (bool, error) {
+func (pp *pinpad) SendData(payload []byte) (bool, error) {
 
 	crc := crc16.Checksum(append(payload, bcpinpad.ETB))
 	bytes := utils.NewBytesBuilder().
