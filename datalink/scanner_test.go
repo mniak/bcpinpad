@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/mniak/ppabecs"
-	"github.com/mniak/ppabecs/datalink/private/entangled"
+	"github.com/mniak/ppabecs/datalink/entangled"
 	"github.com/mniak/ppabecs/utils"
 	"github.com/stellar/go/crc16"
 	"github.com/stretchr/testify/assert"
