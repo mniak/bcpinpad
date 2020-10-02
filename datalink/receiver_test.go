@@ -22,7 +22,7 @@ func TestReceiverShouldBeTransportReceiver(t *testing.T) {
 	_ = a
 }
 
-func TestScanWellFormattedMessage(t *testing.T) {
+func TestReceiveWellFormattedMessage(t *testing.T) {
 	testData := []struct {
 		text string
 		crc1 byte
@@ -55,7 +55,7 @@ func TestScanWellFormattedMessage(t *testing.T) {
 	}
 }
 
-func TestScanWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
+func TestReceiveWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 	testData := []struct {
 		text string
 		crc1 byte
@@ -87,7 +87,7 @@ func TestScanWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 	}
 }
 
-func TestScanWithoutData(t *testing.T) {
+func TestReceiveWithoutData(t *testing.T) {
 	alice, _ := entangled.EntangledReadWriters()
 
 	recv := newSimpleReceiver(alice)
@@ -98,7 +98,7 @@ func TestScanWithoutData(t *testing.T) {
 	assert.Empty(t, text, "scan text should be empty")
 }
 
-func TestScanWithWrongCRC(t *testing.T) {
+func TestReceiveWithWrongCRC(t *testing.T) {
 
 	alice, bob := entangled.EntangledReadWriters()
 
@@ -117,7 +117,7 @@ func TestScanWithWrongCRC(t *testing.T) {
 	assert.Equal(t, err, crc16.ErrInvalidChecksum, "scan error should be due to CRC")
 }
 
-func TestScanWithByteOutOfRange(t *testing.T) {
+func TestReceiveWithByteOutOfRange(t *testing.T) {
 	testData := []byte{
 		0x00, 0x11, 0x19,
 		0x90, 0xa0, 0xf0,
@@ -145,7 +145,7 @@ func TestScanWithByteOutOfRange(t *testing.T) {
 	}
 }
 
-func TestScanWithPayloadLength0(t *testing.T) {
+func TestReceiveWithPayloadLength0(t *testing.T) {
 
 	alice, bob := entangled.EntangledReadWriters()
 
@@ -163,7 +163,7 @@ func TestScanWithPayloadLength0(t *testing.T) {
 	assert.Equal(t, err, ErrMessageTooShort, "scan error should be due to payload too short")
 }
 
-func TestScanWithPayloadLengthGreaterThan1024(t *testing.T) {
+func TestReceiveWithPayloadLengthGreaterThan1024(t *testing.T) {
 
 	alice, bob := entangled.EntangledReadWriters()
 
@@ -180,4 +180,29 @@ func TestScanWithPayloadLengthGreaterThan1024(t *testing.T) {
 	_, err := recv.Receive()
 	assert.Error(t, err, "scan should raise error")
 	assert.Equal(t, err, ErrMessageTooLong, "scan error should be due to payload too long")
+}
+
+func TestReceiveACKorNAK_WhenReadByte_ShouldReturnAccordingly(t *testing.T) {
+	testData := map[string]struct {
+		byte
+		ack bool
+		err error
+	}{
+		"ACK": {bcpinpad.ACK, true, nil},
+		"NAK": {bcpinpad.NAK, false, nil},
+		"ETB": {bcpinpad.ETB, false, ErrProtocolViolation},
+		"X":   {'X', false, ErrProtocolViolation},
+		"8":   {8, false, ErrProtocolViolation},
+	}
+	for name, d := range testData {
+		t.Run(name, func(t *testing.T) {
+			alice, bob := entangled.EntangledReadWriters()
+			recv := newSimpleReceiver(alice)
+
+			go bob.Write([]byte{d.byte})
+			ack, err := recv.ReadACKorNAK()
+			assert.Equal(t, d.ack, ack)
+			assert.Equal(t, d.err, err)
+		})
+	}
 }

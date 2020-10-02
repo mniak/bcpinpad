@@ -26,5 +26,12 @@ func (r receiver) Receive() (string, error) {
 }
 
 func (r receiver) ReadACKorNAK() (bool, error) {
-	return false, nil
+	_, err := r.Receive()
+	switch err {
+	case ErrACK:
+		return true, nil
+	case ErrNAK:
+		return false, nil
+	}
+	return false, err
 }

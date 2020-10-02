@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 
 	"github.com/mniak/bcpinpad"
@@ -12,15 +11,22 @@ import (
 )
 
 var (
-	ErrBytesOutOfRange = errors.New("found bytes out of the range 0x20-0x7f")
-	ErrMessageTooShort = errors.New("the message payload is too short. it should be at least 1 in length")
-	ErrMessageTooLong  = errors.New("the message payload is too long. it should be at most 1024 in length")
+	ErrProtocolViolation = errors.New("protocol violation. expecting byte SYN (0x16), ACK (0x06) or NAK (0x15)")
+	ErrBytesOutOfRange   = errors.New("found bytes out of the range 0x20-0x7f")
+	ErrMessageTooShort   = errors.New("the message payload is too short. it should be at least 1 in length")
+	ErrMessageTooLong    = errors.New("the message payload is too long. it should be at most 1024 in length")
+	ErrACK               = errors.New("ACK received")
+	ErrNAK               = errors.New("NAK received")
 )
 
 func PayloadSplitter(data []byte, atEOF bool) (int, []byte, error) {
-	if atEOF && len(data) == 0 {
-		// Request more data.
-		return 0, nil, nil
+	if len(data) == 0 {
+		if atEOF {
+			return 0, nil, io.EOF
+		} else {
+			// Request more data.
+			return 0, nil, nil
+		}
 	}
 
 	if data[0] == bcpinpad.CAN {
@@ -28,8 +34,15 @@ func PayloadSplitter(data []byte, atEOF bool) (int, []byte, error) {
 		return advance + 1, token, err
 	}
 
+	if data[0] == bcpinpad.ACK {
+		return 1, nil, ErrACK
+	}
+	if data[0] == bcpinpad.NAK {
+		return 1, nil, ErrNAK
+	}
+
 	if data[0] != bcpinpad.SYN {
-		return 0, nil, fmt.Errorf("protocol violation. expecting SYN (0x16) but received %x", data[0])
+		return 0, nil, ErrProtocolViolation
 	}
 	if i := bytes.IndexByte(data, bcpinpad.ETB); i >= 0 {
 		if i < 2 {
