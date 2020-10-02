@@ -3,8 +3,8 @@ package transport
 import (
 	"io"
 
-	"github.com/mniak/ppabecs"
-	"github.com/mniak/ppabecs/utils"
+	"github.com/mniak/bcpinpad"
+	"github.com/mniak/bcpinpad/utils"
 )
 
 type rawPinpad struct {
@@ -19,9 +19,9 @@ func NewPinpad(rw io.ReadWriter) *rawPinpad {
 
 func (pp *rawPinpad) SendData(payload []byte) error {
 	bytes := utils.NewBytesBuilder().
-		AddByte(ppabecs.SYN).
+		AddByte(bcpinpad.SYN).
 		AddBytes(payload).
-		AddByte(ppabecs.ETB, byte(0x77), byte(0x5e)).
+		AddByte(bcpinpad.ETB, byte(0x77), byte(0x5e)).
 		Bytes()
 
 	_, err := pp.rw.Write(bytes)

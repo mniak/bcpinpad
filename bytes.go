@@ -1,4 +1,4 @@
-package ppabecs
+package bcpinpad
 
 const (
 	ACK = 0x06

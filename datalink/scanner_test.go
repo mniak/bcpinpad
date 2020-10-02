@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mniak/ppabecs"
-	"github.com/mniak/ppabecs/datalink/entangled"
-	"github.com/mniak/ppabecs/utils"
+	"github.com/mniak/bcpinpad"
+	"github.com/mniak/bcpinpad/datalink/entangled"
+	"github.com/mniak/bcpinpad/utils"
 	"github.com/stellar/go/crc16"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,9 +31,9 @@ func TestScanWellFormattedMessage(t *testing.T) {
 			scanner.Split(PayloadSplitter)
 
 			bytes := utils.NewBytesBuilder().
-				AddByte(ppabecs.SYN).
+				AddByte(bcpinpad.SYN).
 				AddString(d.text).
-				AddByte(ppabecs.ETB).
+				AddByte(bcpinpad.ETB).
 				AddByte(d.crc1, d.crc2).
 				Bytes()
 
@@ -66,10 +66,10 @@ func TestScanWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 			scanner.Split(PayloadSplitter)
 
 			bytes := utils.NewBytesBuilder().
-				AddByte(ppabecs.CAN).
-				AddByte(ppabecs.SYN).
+				AddByte(bcpinpad.CAN).
+				AddByte(bcpinpad.SYN).
 				AddString(d.text).
-				AddByte(ppabecs.ETB).
+				AddByte(bcpinpad.ETB).
 				AddByte(d.crc1, d.crc2).
 				Bytes()
 
@@ -100,9 +100,9 @@ func TestScanWithWrongCRC(t *testing.T) {
 	scanner.Split(PayloadSplitter)
 
 	bytes := utils.NewBytesBuilder().
-		AddByte(ppabecs.SYN).
+		AddByte(bcpinpad.SYN).
 		AddString("ABCDEFG").
-		AddByte(ppabecs.ETB).
+		AddByte(bcpinpad.ETB).
 		AddByte(0x11, 0x22).
 		Bytes()
 
@@ -125,11 +125,11 @@ func TestScanWithByteOutOfRange(t *testing.T) {
 			scanner.Split(PayloadSplitter)
 
 			bytes := utils.NewBytesBuilder().
-				AddByte(ppabecs.SYN).
+				AddByte(bcpinpad.SYN).
 				AddString("ABCD").
 				AddByte(b).
 				AddString("EFGH").
-				AddByte(ppabecs.ETB).
+				AddByte(bcpinpad.ETB).
 				AddByte(0x11, 0x22).
 				Bytes()
 
@@ -149,8 +149,8 @@ func TestScanWithPayloadLength0(t *testing.T) {
 	scanner.Split(PayloadSplitter)
 
 	bytes := utils.NewBytesBuilder().
-		AddByte(ppabecs.SYN).
-		AddByte(ppabecs.ETB).
+		AddByte(bcpinpad.SYN).
+		AddByte(bcpinpad.ETB).
 		AddByte(0x11, 0x22).
 		Bytes()
 
@@ -168,9 +168,9 @@ func TestScanWithPayloadLengthGreaterThan1024(t *testing.T) {
 	scanner.Split(PayloadSplitter)
 
 	bytes := utils.NewBytesBuilder().
-		AddByte(ppabecs.SYN).
+		AddByte(bcpinpad.SYN).
 		AddString(strings.Repeat("a", 1024+1)).
-		AddByte(ppabecs.ETB).
+		AddByte(bcpinpad.ETB).
 		AddByte(0x11, 0x22).
 		Bytes()
 

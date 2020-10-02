@@ -3,7 +3,7 @@ package datalink
 import (
 	"testing"
 
-	"github.com/mniak/ppabecs/transport"
+	"github.com/mniak/bcpinpad/transport"
 )
 
 func TestSenderShouldBeTransportSender(t *testing.T) {

@@ -1,4 +1,4 @@
-module github.com/mniak/ppabecs
+module github.com/mniak/bcpinpad
 
 go 1.15
 

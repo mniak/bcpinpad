@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mniak/ppabecs"
-	"github.com/mniak/ppabecs/datalink/entangled"
-	"github.com/mniak/ppabecs/utils"
+	"github.com/mniak/bcpinpad"
+	"github.com/mniak/bcpinpad/datalink/entangled"
+	"github.com/mniak/bcpinpad/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,9 +17,9 @@ const ToleranceDuration = 50 * time.Millisecond
 func TestSendData_WhenReceiveACK_ShouldStopRetrying(t *testing.T) {
 	payload := []byte("OPN000")
 	expectedBytes := utils.NewBytesBuilder().
-		AddByte(ppabecs.SYN).
+		AddByte(bcpinpad.SYN).
 		AddBytes(payload).
-		AddByte(ppabecs.ETB, byte(0x77), byte(0x5e)).
+		AddByte(bcpinpad.ETB, byte(0x77), byte(0x5e)).
 		Bytes()
 
 	alice, bob := entangled.EntangledReadWriters()
@@ -35,7 +35,7 @@ func TestSendData_WhenReceiveACK_ShouldStopRetrying(t *testing.T) {
 		wg.Done()
 	}()
 	go func() {
-		bob.Write([]byte{ppabecs.ACK})
+		bob.Write([]byte{bcpinpad.ACK})
 	}()
 	time.Sleep(100 * time.Millisecond)
 	wg.Wait()

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/mniak/ppabecs"
+	"github.com/mniak/bcpinpad"
 	"github.com/stellar/go/crc16"
 )
 
@@ -22,15 +22,15 @@ func PayloadSplitter(data []byte, atEOF bool) (int, []byte, error) {
 		return 0, nil, nil
 	}
 
-	if data[0] == ppabecs.CAN {
+	if data[0] == bcpinpad.CAN {
 		advance, token, err := PayloadSplitter(data[1:], atEOF)
 		return advance + 1, token, err
 	}
 
-	if data[0] != ppabecs.SYN {
+	if data[0] != bcpinpad.SYN {
 		return 0, nil, fmt.Errorf("protocol violation. expecting SYN (0x16) but received %x", data[0])
 	}
-	if i := bytes.IndexByte(data, ppabecs.ETB); i >= 0 {
+	if i := bytes.IndexByte(data, bcpinpad.ETB); i >= 0 {
 		if i < 2 {
 			return 0, nil, ErrMessageTooShort
 		}
