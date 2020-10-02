@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/mniak/ppabecs"
-	"github.com/mniak/ppabecs/datalink/private/entangled"
+	"github.com/mniak/ppabecs/datalink/entangled"
 	"github.com/mniak/ppabecs/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -14,7 +14,7 @@ import (
 const TimeoutDuration = 2 * time.Second
 const ToleranceDuration = 50 * time.Millisecond
 
-func TestSend_WhenReceiveACK_ShouldStopSending(t *testing.T) {
+func TestSendData_WhenReceiveACK_ShouldStopRetrying(t *testing.T) {
 	payload := []byte("OPN000")
 	expectedBytes := utils.NewBytesBuilder().
 		AddByte(ppabecs.SYN).

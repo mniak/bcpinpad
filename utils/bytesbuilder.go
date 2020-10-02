@@ -17,9 +17,7 @@ func (bb *BytesBuilder) AddByte(bytes ...byte) *BytesBuilder {
 
 // AddBytes adds many bytes to the Builder
 func (bb *BytesBuilder) AddBytes(bytes []byte) *BytesBuilder {
-	for _, b := range bytes {
-		bb.bytes = append(bb.bytes, b)
-	}
+	bb.bytes = append(bb.bytes, bytes...)
 	return bb
 }
 
