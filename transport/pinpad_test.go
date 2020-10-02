@@ -24,7 +24,9 @@ func TestSendData_WhenReceiveACK_ShouldStopRetrying(t *testing.T) {
 		Bytes()
 
 	alice, bob := entangled.EntangledReadWriters()
-	pp := NewPinpad(alice, new(mocks.Receiver))
+	mockReceiver := new(mocks.Receiver)
+	mockReceiver.On("ReadACKorNAK").Return(true, nil)
+	pp := NewPinpad(alice, mockReceiver)
 
 	startTime := time.Now()
 	var wg sync.WaitGroup
@@ -65,7 +67,6 @@ func TestSendData_WhenDoesNotReceiveReplyAndTimeout_ShouldAddCANandAbort(t *test
 	alice, bob := entangled.EntangledReadWriters()
 	mockReceiver := new(mocks.Receiver)
 	mockReceiver.On("ReadACKorNAK").Return(false, bcpinpad.ErrTimeout)
-
 	pp := NewPinpad(alice, mockReceiver)
 
 	startTime := time.Now()
