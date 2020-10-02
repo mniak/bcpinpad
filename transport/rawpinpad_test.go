@@ -7,6 +7,7 @@ import (
 
 	"github.com/mniak/bcpinpad"
 	"github.com/mniak/bcpinpad/datalink/entangled"
+	"github.com/mniak/bcpinpad/mocks"
 	"github.com/mniak/bcpinpad/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +24,7 @@ func TestSendData_WhenReceiveACK_ShouldStopRetrying(t *testing.T) {
 		Bytes()
 
 	alice, bob := entangled.EntangledReadWriters()
-	pp := NewPinpad(alice, nil)
+	pp := NewPinpad(alice, new(mocks.Receiver))
 
 	startTime := time.Now()
 	var wg sync.WaitGroup
@@ -62,12 +63,15 @@ func TestSendData_WhenDoesNotReceiveReplyAndTimeout_ShouldAddCANandAbort(t *test
 		Bytes()
 
 	alice, bob := entangled.EntangledReadWriters()
-	pp := NewPinpad(alice, nil)
+	mockReceiver := new(mocks.Receiver)
+	mockReceiver.On("ReadACKorNAK").Return(false, bcpinpad.ErrTimeout)
+
+	pp := NewPinpad(alice, mockReceiver)
 
 	startTime := time.Now()
 	{
 		ack, err := pp.SendData(payload)
-		assert.True(t, ack, "Expected ACK")
+		assert.False(t, ack, "OK (ACK) not expected")
 		assert.Equal(t, bcpinpad.ErrTimeout, err)
 	}
 	duration := time.Since(startTime)

@@ -9,14 +9,14 @@ import (
 )
 
 type rawPinpad struct {
-	rw      io.ReadWriter
-	scanner *Receiver
+	rw       io.ReadWriter
+	receiver Receiver
 }
 
-func NewPinpad(rw io.ReadWriter, receiver *Receiver) *rawPinpad {
+func NewPinpad(rw io.ReadWriter, receiver Receiver) *rawPinpad {
 	return &rawPinpad{
-		rw:      rw,
-		scanner: receiver,
+		rw:       rw,
+		receiver: receiver,
 	}
 }
 
@@ -37,18 +37,14 @@ func (pp *rawPinpad) SendData(payload []byte) (bool, error) {
 
 	var ack bool
 	for i := 0; i < 3; i++ {
-		ack, err = pp.ReadACKorNAK()
+		ack, err = pp.receiver.ReadACKorNAK()
 		if err != bcpinpad.ErrTimeout {
 			break
 		}
 	}
 	if err != nil {
 		pp.rw.Write([]byte{bcpinpad.CAN})
-		return false, nil
+		return false, err
 	}
 	return ack, nil
-}
-
-func (pp *rawPinpad) ReadACKorNAK() (bool, error) {
-	return true, nil
 }
