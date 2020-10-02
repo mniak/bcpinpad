@@ -1,6 +1,7 @@
 package datalink
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -68,4 +69,10 @@ func PayloadSplitter(data []byte, atEOF bool) (int, []byte, error) {
 	}
 	// Request more data.
 	return 0, nil, nil
+}
+
+func NewScanner(r io.Reader) *bufio.Scanner {
+	scanner := bufio.NewScanner(r)
+	scanner.Split(PayloadSplitter)
+	return scanner
 }

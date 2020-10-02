@@ -1,17 +1,26 @@
 package datalink
 
 import (
-	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/mniak/bcpinpad"
 	"github.com/mniak/bcpinpad/datalink/entangled"
+	"github.com/mniak/bcpinpad/transport"
 	"github.com/mniak/bcpinpad/utils"
 	"github.com/stellar/go/crc16"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestReceiverShouldBeTransportReceiver(t *testing.T) {
+	r := bytes.NewReader([]byte("dummy bytes"))
+	rec := newSimpleReceiver(r)
+	var a transport.Receiver = rec
+	_ = a
+}
 
 func TestScanWellFormattedMessage(t *testing.T) {
 	testData := []struct {
@@ -27,8 +36,7 @@ func TestScanWellFormattedMessage(t *testing.T) {
 		t.Run(d.text, func(t *testing.T) {
 			alice, bob := entangled.EntangledReadWriters()
 
-			scanner := bufio.NewScanner(alice)
-			scanner.Split(PayloadSplitter)
+			recv := newSimpleReceiver(alice)
 
 			bytes := utils.NewBytesBuilder().
 				AddByte(bcpinpad.SYN).
@@ -40,9 +48,8 @@ func TestScanWellFormattedMessage(t *testing.T) {
 			go func() {
 				bob.Write(bytes)
 			}()
-			assert.True(t, scanner.Scan(), "scan failed")
-			assert.NoError(t, scanner.Err(), "scan raised error")
-			text := scanner.Text()
+			text, err := recv.Receive()
+			assert.NoError(t, err, "scan raised error")
 			assert.Equal(t, d.text, text, "scan text is invalid")
 		})
 	}
@@ -62,8 +69,7 @@ func TestScanWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 		t.Run(d.text, func(t *testing.T) {
 			alice, bob := entangled.EntangledReadWriters()
 
-			scanner := bufio.NewScanner(alice)
-			scanner.Split(PayloadSplitter)
+			recv := newSimpleReceiver(alice)
 
 			bytes := utils.NewBytesBuilder().
 				AddByte(bcpinpad.CAN).
@@ -74,9 +80,8 @@ func TestScanWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 				Bytes()
 
 			go bob.Write(bytes)
-			assert.True(t, scanner.Scan(), "scan failed")
-			assert.NoError(t, scanner.Err(), "scan raised error")
-			text := scanner.Text()
+			text, err := recv.Receive()
+			assert.NoError(t, err, "scan raised error")
 			assert.Equal(t, d.text, text, "scan text is invalid")
 		})
 	}
@@ -85,19 +90,19 @@ func TestScanWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 func TestScanWithoutData(t *testing.T) {
 	alice, _ := entangled.EntangledReadWriters()
 
-	scanner := bufio.NewScanner(alice)
-	scanner.Split(PayloadSplitter)
+	recv := newSimpleReceiver(alice)
 
-	assert.False(t, scanner.Scan(), "scan should fail")
-	assert.NoError(t, scanner.Err(), "scan should not raise error")
+	text, err := recv.Receive()
+	assert.Error(t, err, "scan should raise error")
+	assert.Equal(t, err, io.EOF, "scan error should be EOF")
+	assert.Empty(t, text, "scan text should be empty")
 }
 
 func TestScanWithWrongCRC(t *testing.T) {
 
 	alice, bob := entangled.EntangledReadWriters()
 
-	scanner := bufio.NewScanner(alice)
-	scanner.Split(PayloadSplitter)
+	recv := newSimpleReceiver(alice)
 
 	bytes := utils.NewBytesBuilder().
 		AddByte(bcpinpad.SYN).
@@ -107,9 +112,9 @@ func TestScanWithWrongCRC(t *testing.T) {
 		Bytes()
 
 	go bob.Write(bytes)
-	assert.False(t, scanner.Scan(), "scan should fail")
-	assert.Error(t, scanner.Err(), "scan should raise error")
-	assert.Equal(t, scanner.Err(), crc16.ErrInvalidChecksum, "scan error should be due to CRC")
+	_, err := recv.Receive()
+	assert.Error(t, err, "scan should raise error")
+	assert.Equal(t, err, crc16.ErrInvalidChecksum, "scan error should be due to CRC")
 }
 
 func TestScanWithByteOutOfRange(t *testing.T) {
@@ -121,8 +126,7 @@ func TestScanWithByteOutOfRange(t *testing.T) {
 		t.Run(fmt.Sprintf("%x", b), func(t *testing.T) {
 			alice, bob := entangled.EntangledReadWriters()
 
-			scanner := bufio.NewScanner(alice)
-			scanner.Split(PayloadSplitter)
+			recv := newSimpleReceiver(alice)
 
 			bytes := utils.NewBytesBuilder().
 				AddByte(bcpinpad.SYN).
@@ -134,9 +138,9 @@ func TestScanWithByteOutOfRange(t *testing.T) {
 				Bytes()
 
 			go bob.Write(bytes)
-			assert.False(t, scanner.Scan(), "scan should fail")
-			assert.Error(t, scanner.Err(), "scan should raise error")
-			assert.Equal(t, scanner.Err(), ErrBytesOutOfRange, "scan error should be due to bytes out of range")
+			_, err := recv.Receive()
+			assert.Error(t, err, "scan should raise error")
+			assert.Equal(t, err, ErrBytesOutOfRange, "scan error should be due to bytes out of range")
 		})
 	}
 }
@@ -145,8 +149,7 @@ func TestScanWithPayloadLength0(t *testing.T) {
 
 	alice, bob := entangled.EntangledReadWriters()
 
-	scanner := bufio.NewScanner(alice)
-	scanner.Split(PayloadSplitter)
+	recv := newSimpleReceiver(alice)
 
 	bytes := utils.NewBytesBuilder().
 		AddByte(bcpinpad.SYN).
@@ -155,17 +158,16 @@ func TestScanWithPayloadLength0(t *testing.T) {
 		Bytes()
 
 	go bob.Write(bytes)
-	assert.False(t, scanner.Scan(), "scan should fail")
-	assert.Error(t, scanner.Err(), "scan should raise error")
-	assert.Equal(t, scanner.Err(), ErrMessageTooShort, "scan error should be due to payload too short")
+	_, err := recv.Receive()
+	assert.Error(t, err, "scan should raise error")
+	assert.Equal(t, err, ErrMessageTooShort, "scan error should be due to payload too short")
 }
 
 func TestScanWithPayloadLengthGreaterThan1024(t *testing.T) {
 
 	alice, bob := entangled.EntangledReadWriters()
 
-	scanner := bufio.NewScanner(alice)
-	scanner.Split(PayloadSplitter)
+	recv := newSimpleReceiver(alice)
 
 	bytes := utils.NewBytesBuilder().
 		AddByte(bcpinpad.SYN).
@@ -175,7 +177,7 @@ func TestScanWithPayloadLengthGreaterThan1024(t *testing.T) {
 		Bytes()
 
 	go bob.Write(bytes)
-	assert.False(t, scanner.Scan(), "scan should fail")
-	assert.Error(t, scanner.Err(), "scan should raise error")
-	assert.Equal(t, scanner.Err(), ErrMessageTooLong, "scan error should be due to payload too long")
+	_, err := recv.Receive()
+	assert.Error(t, err, "scan should raise error")
+	assert.Equal(t, err, ErrMessageTooLong, "scan error should be due to payload too long")
 }

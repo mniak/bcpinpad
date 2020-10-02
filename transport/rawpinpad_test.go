@@ -23,14 +23,15 @@ func TestSendData_WhenReceiveACK_ShouldStopRetrying(t *testing.T) {
 		Bytes()
 
 	alice, bob := entangled.EntangledReadWriters()
-	pp := NewPinpad(alice)
+	pp := NewPinpad(alice, nil)
 
 	startTime := time.Now()
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 	go func() {
-		err := pp.SendData(payload)
+		ack, err := pp.SendData(payload)
+		assert.True(t, ack, "Expected ACK")
 		assert.NoError(t, err, "error while sending data")
 		wg.Done()
 	}()
@@ -42,6 +43,36 @@ func TestSendData_WhenReceiveACK_ShouldStopRetrying(t *testing.T) {
 	duration := time.Since(startTime)
 
 	assert.True(t, duration < 100*time.Millisecond+ToleranceDuration, "function did not complete in the specified time duration")
+
+	recvBuffer := make([]byte, len(expectedBytes))
+	recvCount, err := bob.Read(recvBuffer)
+
+	assert.NoError(t, err)
+	assert.Equal(t, len(expectedBytes), recvCount, "wrong number of bytes sent")
+	assert.EqualValues(t, expectedBytes, recvBuffer, "wrong bytes sent")
+}
+
+func TestSendData_WhenDoesNotReceiveReplyAndTimeout_ShouldAddCANandAbort(t *testing.T) {
+	payload := []byte("OPN000")
+	expectedBytes := utils.NewBytesBuilder().
+		AddByte(bcpinpad.SYN).
+		AddBytes(payload).
+		AddByte(bcpinpad.ETB, byte(0x77), byte(0x5e)).
+		AddByte(bcpinpad.CAN).
+		Bytes()
+
+	alice, bob := entangled.EntangledReadWriters()
+	pp := NewPinpad(alice, nil)
+
+	startTime := time.Now()
+	{
+		ack, err := pp.SendData(payload)
+		assert.True(t, ack, "Expected ACK")
+		assert.Equal(t, bcpinpad.ErrTimeout, err)
+	}
+	duration := time.Since(startTime)
+
+	assert.True(t, duration < TimeoutDuration+ToleranceDuration, "function did not complete in the specified time duration")
 
 	recvBuffer := make([]byte, len(expectedBytes))
 	recvCount, err := bob.Read(recvBuffer)
