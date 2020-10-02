@@ -1,9 +1,9 @@
 package transport
 
-type Sender interface {
+type DataSender interface {
 }
 
-type Receiver interface {
+type DataReceiver interface {
 	Receive() (string, error)
 	ReadACKorNAK() (bool, error)
 }

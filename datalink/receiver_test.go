@@ -17,8 +17,8 @@ import (
 
 func TestReceiverShouldBeTransportReceiver(t *testing.T) {
 	r := bytes.NewReader([]byte("dummy bytes"))
-	rec := NewReceiver(r)
-	var a transport.Receiver = rec
+	rec := NewDataReceiver(r)
+	var a transport.DataReceiver = rec
 	_ = a
 }
 
@@ -36,7 +36,7 @@ func TestReceiveWellFormattedMessage(t *testing.T) {
 		t.Run(d.text, func(t *testing.T) {
 			alice, bob := entangled.EntangledReadWriters()
 
-			recv := NewReceiver(alice)
+			recv := NewDataReceiver(alice)
 
 			bytes := utils.NewBytesBuilder().
 				AddByte(bcpinpad.SYN).
@@ -69,7 +69,7 @@ func TestReceiveWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 		t.Run(d.text, func(t *testing.T) {
 			alice, bob := entangled.EntangledReadWriters()
 
-			recv := NewReceiver(alice)
+			recv := NewDataReceiver(alice)
 
 			bytes := utils.NewBytesBuilder().
 				AddByte(bcpinpad.CAN).
@@ -90,7 +90,7 @@ func TestReceiveWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 func TestReceiveWithoutData(t *testing.T) {
 	alice, _ := entangled.EntangledReadWriters()
 
-	recv := NewReceiver(alice)
+	recv := NewDataReceiver(alice)
 
 	text, err := recv.Receive()
 	assert.Error(t, err, "scan should raise error")
@@ -102,7 +102,7 @@ func TestReceiveWithWrongCRC(t *testing.T) {
 
 	alice, bob := entangled.EntangledReadWriters()
 
-	recv := NewReceiver(alice)
+	recv := NewDataReceiver(alice)
 
 	bytes := utils.NewBytesBuilder().
 		AddByte(bcpinpad.SYN).
@@ -126,7 +126,7 @@ func TestReceiveWithByteOutOfRange(t *testing.T) {
 		t.Run(fmt.Sprintf("%x", b), func(t *testing.T) {
 			alice, bob := entangled.EntangledReadWriters()
 
-			recv := NewReceiver(alice)
+			recv := NewDataReceiver(alice)
 
 			bytes := utils.NewBytesBuilder().
 				AddByte(bcpinpad.SYN).
@@ -149,7 +149,7 @@ func TestReceiveWithPayloadLength0(t *testing.T) {
 
 	alice, bob := entangled.EntangledReadWriters()
 
-	recv := NewReceiver(alice)
+	recv := NewDataReceiver(alice)
 
 	bytes := utils.NewBytesBuilder().
 		AddByte(bcpinpad.SYN).
@@ -167,7 +167,7 @@ func TestReceiveWithPayloadLengthGreaterThan1024(t *testing.T) {
 
 	alice, bob := entangled.EntangledReadWriters()
 
-	recv := NewReceiver(alice)
+	recv := NewDataReceiver(alice)
 
 	bytes := utils.NewBytesBuilder().
 		AddByte(bcpinpad.SYN).
@@ -197,7 +197,7 @@ func TestReceiveACKorNAK_WhenReadByte_ShouldReturnAccordingly(t *testing.T) {
 	for name, d := range testData {
 		t.Run(name, func(t *testing.T) {
 			alice, bob := entangled.EntangledReadWriters()
-			recv := NewReceiver(alice)
+			recv := NewDataReceiver(alice)
 
 			go bob.Write([]byte{d.byte})
 			ack, err := recv.ReadACKorNAK()

@@ -10,10 +10,10 @@ import (
 
 type pinpad struct {
 	rw       io.ReadWriter
-	receiver Receiver
+	receiver DataReceiver
 }
 
-func NewPinpad(rw io.ReadWriter, receiver Receiver) *pinpad {
+func NewPinpad(rw io.ReadWriter, receiver DataReceiver) *pinpad {
 	return &pinpad{
 		rw:       rw,
 		receiver: receiver,

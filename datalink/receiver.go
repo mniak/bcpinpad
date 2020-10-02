@@ -5,17 +5,17 @@ import (
 	"io"
 )
 
-type receiver struct {
+type dataReceiver struct {
 	scanner *bufio.Scanner
 }
 
-func NewReceiver(r io.Reader) receiver {
-	return receiver{
+func NewDataReceiver(r io.Reader) dataReceiver {
+	return dataReceiver{
 		scanner: NewScanner(r),
 	}
 }
 
-func (r receiver) Receive() (string, error) {
+func (r dataReceiver) Receive() (string, error) {
 	ok := r.scanner.Scan()
 	err := r.scanner.Err()
 	bytes := r.scanner.Text()
@@ -25,7 +25,7 @@ func (r receiver) Receive() (string, error) {
 	return string(bytes), err
 }
 
-func (r receiver) ReadACKorNAK() (bool, error) {
+func (r dataReceiver) ReadACKorNAK() (bool, error) {
 	_, err := r.Receive()
 	switch err {
 	case ErrACK:

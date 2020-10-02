@@ -8,6 +8,6 @@ import (
 
 func TestSenderShouldBeTransportSender(t *testing.T) {
 	r := sender{}
-	var a transport.Sender = r
+	var a transport.DataSender = r
 	_ = a
 }
