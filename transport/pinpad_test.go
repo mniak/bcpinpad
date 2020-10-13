@@ -94,6 +94,7 @@ func TestSend(t *testing.T) {
 	alice, _ := entangled.EntangledReadWriters()
 	mockReceiver := new(mocks.DataReceiver)
 	mockReceiver.On("ReadACKorNAK").Return(true, nil)
+	mockReceiver.On("Receive").Return(responsePayload, nil)
 	pp := NewPinpad(alice, mockReceiver)
 
 	actualResponsePayload, err := pp.Send(requestPayload)
