@@ -15,14 +15,14 @@ func NewDataReceiver(r io.Reader) dataReceiver {
 	}
 }
 
-func (r dataReceiver) Receive() (string, error) {
+func (r dataReceiver) Receive() ([]byte, error) {
 	ok := r.scanner.Scan()
 	err := r.scanner.Err()
-	bytes := r.scanner.Text()
+	bytes := r.scanner.Bytes()
 	if err == nil && !ok {
-		return string(bytes), io.EOF
+		return bytes, io.EOF
 	}
-	return string(bytes), err
+	return bytes, err
 }
 
 func (r dataReceiver) ReadACKorNAK() (bool, error) {

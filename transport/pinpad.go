@@ -1,12 +1,21 @@
 package transport
 
 import (
+	"errors"
 	"io"
 
 	"github.com/mniak/bcpinpad"
 	"github.com/mniak/bcpinpad/utils"
 	"github.com/stellar/go/crc16"
 )
+
+var (
+	NegativeAcknowledgement = errors.New("negative acknowledgement received")
+)
+
+type Pinpad interface {
+	Send(payload []byte) ([]byte, error)
+}
 
 type pinpad struct {
 	rw       io.ReadWriter
@@ -20,7 +29,7 @@ func NewPinpad(rw io.ReadWriter, receiver DataReceiver) *pinpad {
 	}
 }
 
-func (pp *pinpad) SendData(payload []byte) (bool, error) {
+func (pp *pinpad) sendData(payload []byte) (bool, error) {
 
 	crc := crc16.Checksum(append(payload, bcpinpad.ETB))
 	bytes := utils.NewBytesBuilder().
@@ -47,4 +56,20 @@ func (pp *pinpad) SendData(payload []byte) (bool, error) {
 		return false, err
 	}
 	return ack, nil
+}
+
+func (pp *pinpad) Send(payload []byte) ([]byte, error) {
+	ok, err := pp.sendData(payload)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, NegativeAcknowledgement
+	}
+
+	recvbytes, err := pp.receiver.Receive()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	return recvbytes, err
 }

@@ -4,6 +4,6 @@ type DataSender interface {
 }
 
 type DataReceiver interface {
-	Receive() (string, error)
+	Receive() ([]byte, error)
 	ReadACKorNAK() (bool, error)
 }

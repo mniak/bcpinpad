@@ -33,7 +33,7 @@ func TestSendData_WhenReceiveACK_ShouldStopRetrying(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
-		ack, err := pp.SendData(payload)
+		ack, err := pp.sendData(payload)
 		assert.True(t, ack, "Expected ACK")
 		assert.NoError(t, err, "error while sending data")
 		wg.Done()
@@ -71,7 +71,7 @@ func TestSendData_WhenDoesNotReceiveReplyAndTimeout_ShouldAddCANandAbort(t *test
 
 	startTime := time.Now()
 	{
-		ack, err := pp.SendData(payload)
+		ack, err := pp.sendData(payload)
 		assert.False(t, ack, "OK (ACK) not expected")
 		assert.Equal(t, bcpinpad.ErrTimeout, err)
 	}
@@ -85,4 +85,18 @@ func TestSendData_WhenDoesNotReceiveReplyAndTimeout_ShouldAddCANandAbort(t *test
 	assert.NoError(t, err)
 	assert.Equal(t, len(expectedBytes), recvCount, "wrong number of bytes sent")
 	assert.EqualValues(t, expectedBytes, recvBuffer, "wrong bytes sent")
+}
+
+func TestSend(t *testing.T) {
+	requestPayload := []byte("REQUEST PAYLOAD")
+	responsePayload := []byte("RESPONSE PAYLOAD")
+
+	alice, _ := entangled.EntangledReadWriters()
+	mockReceiver := new(mocks.DataReceiver)
+	mockReceiver.On("ReadACKorNAK").Return(true, nil)
+	pp := NewPinpad(alice, mockReceiver)
+
+	actualResponsePayload, err := pp.Send(requestPayload)
+	assert.NoError(t, err)
+	assert.EqualValues(t, responsePayload, actualResponsePayload, "response payload does not match with expectation")
 }
