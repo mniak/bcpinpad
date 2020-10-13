@@ -31,14 +31,16 @@ func (_m *DataReceiver) ReadACKorNAK() (bool, error) {
 }
 
 // Receive provides a mock function with given fields:
-func (_m *DataReceiver) Receive() (string, error) {
+func (_m *DataReceiver) Receive() ([]byte, error) {
 	ret := _m.Called()
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func() []byte); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
 	}
 
 	var r1 error
