@@ -48,9 +48,9 @@ func TestReceiveWellFormattedMessage(t *testing.T) {
 			go func() {
 				bob.Write(bytes)
 			}()
-			text, err := recv.Receive()
+			received, err := recv.Receive()
 			assert.NoError(t, err, "scan raised error")
-			assert.Equal(t, d.text, text, "scan text is invalid")
+			assert.Equal(t, d.text, string(received), "scan bytes are invalid")
 		})
 	}
 }
@@ -80,9 +80,9 @@ func TestReceiveWellFormattedMessage_WithCANInTheBeginning(t *testing.T) {
 				Bytes()
 
 			go bob.Write(bytes)
-			text, err := recv.Receive()
+			received, err := recv.Receive()
 			assert.NoError(t, err, "scan raised error")
-			assert.Equal(t, d.text, text, "scan text is invalid")
+			assert.Equal(t, d.text, string(received), "scan bytes are invalid")
 		})
 	}
 }
@@ -205,4 +205,28 @@ func TestReceiveACKorNAK_WhenReadByte_ShouldReturnAccordingly(t *testing.T) {
 			assert.Equal(t, d.err, err)
 		})
 	}
+}
+
+func TestReceiveWhenNAK_ShouldConsumeByte(t *testing.T) {
+
+	alice, bob := entangled.EntangledReadWriters()
+
+	recv := NewDataReceiver(alice)
+
+	bobPayload := utils.NewBytesBuilder().
+		AddByte(bcpinpad.NAK).
+		AddByte(bcpinpad.SYN).
+		AddString("OPN000").
+		AddByte(bcpinpad.ETB).
+		AddByte(0x77, 0x5e).
+		Bytes()
+
+	go bob.Write(bobPayload)
+	bytes, err := recv.Receive()
+	assert.Error(t, err, "scan should raise error")
+	assert.Equal(t, err, ErrNAK, "scan error should be due to NAK received")
+
+	bytes, err = recv.Receive()
+	assert.NoError(t, err, "scan should not raise error")
+	assert.EqualValues(t, []byte("OPN000"), bytes)
 }

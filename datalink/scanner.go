@@ -35,7 +35,7 @@ func PayloadSplitter(data []byte, atEOF bool) (int, []byte, error) {
 	}
 
 	if data[0] == bcpinpad.ACK {
-		return 1, nil, ErrACK
+		return 1, []byte{bcpinpad.ACK}, ErrACK
 	}
 	if data[0] == bcpinpad.NAK {
 		return 1, nil, ErrNAK

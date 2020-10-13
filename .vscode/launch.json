@@ -12,7 +12,7 @@
             "program": "${workspaceFolder}/cmd/pp",
             "env": {},
             "args": [
-                "get-info",
+                "display",
             ]
         }
     ]

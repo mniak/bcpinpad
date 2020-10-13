@@ -13,6 +13,7 @@ var (
 
 func init() {
 	rootCmd.AddCommand(getInfo)
+	rootCmd.AddCommand(display)
 }
 
 func main() {
