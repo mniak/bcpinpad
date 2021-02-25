@@ -180,6 +180,8 @@ github.com/stellar/go v0.0.0-20200918155524-d6803f9c1eb8 h1:tJGSSsR1zKxHOhHp2KHK
 github.com/stellar/go v0.0.0-20200918155524-d6803f9c1eb8/go.mod h1:PGVMUzNBHfCpregVTwNK1uNTQTgsw9yrZZN53csq5JA=
 github.com/stellar/go v0.0.0-20210219143447-0e85041a345b h1:Ck5BVI8H1HQIk0vR+WxyewLB4pc3yn8sU3+9OurasIQ=
 github.com/stellar/go v0.0.0-20210219143447-0e85041a345b/go.mod h1:YWQ5olwDH1GXH6tPMvmJb6Fw4hBn73JYw+hOSfky9qU=
+github.com/stellar/go v0.0.0-20210225154757-e8fc872274d2 h1:amxTAg6CQ1O8tvGVKDsWkMymb49Ma13Nj2e8F42/aJs=
+github.com/stellar/go v0.0.0-20210225154757-e8fc872274d2/go.mod h1:YWQ5olwDH1GXH6tPMvmJb6Fw4hBn73JYw+hOSfky9qU=
 github.com/stellar/go-xdr v0.0.0-20200331223602-71a1e6d555f2/go.mod h1:yoxyU/M8nl9LKeWIoBrbDPQ7Cy+4jxRcWcOayZ4BMps=
 github.com/stellar/go-xdr v0.0.0-20201028102745-f80a23dac78a/go.mod h1:yoxyU/M8nl9LKeWIoBrbDPQ7Cy+4jxRcWcOayZ4BMps=
 github.com/stellar/throttled v2.2.3-0.20190823235211-89d75816f59d+incompatible/go.mod h1:7CJ23pXirXBJq45DqvO6clzTEGM/l1SfKrgrzLry8b4=
